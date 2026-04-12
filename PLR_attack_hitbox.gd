@@ -15,11 +15,12 @@ func _process(delta: float) -> void:
 func _area_entered(area: Area3D) -> void:
 	if area.has_method("getHolder"):
 		var otherGuy = area.getHolder()
-		if area.monitoring and otherGuy.name == "Player":
-			print("hit")
-			var dir : Vector3 = attacker.direction
-			otherGuy.velocity = dir * 5
+		if area.monitoring and otherGuy.name != "Player":
+			#%Player.camForw
+			var dir : Vector3 = attacker.camForw
+			
+			otherGuy.velocity = -dir * 5
 			
 			if otherGuy.has_method("stun"):
-				otherGuy.stun(.2)
+				otherGuy.stun(1.0)
 			#targetRot = atan2(-velocity.x, -velocity.z)

@@ -19,6 +19,14 @@ var targetRot = 0
 var camForw : Vector3
 
 
+@onready var stunTimer : Timer = $Timers/Stun
+
+enum States {MOVE, STUNNED, ATTACKING, RECOVERING}
+
+var state = States.MOVE
+
+
+
 func flatten(vector: Vector3) -> Vector3:
 	return Vector3( vector.x, 0, vector.z)
 
@@ -27,12 +35,13 @@ func move() -> void:
 	model.rotation.y = lerp_angle(model.rotation.y, targetRot, .5)
 	
 	#$CollisionShape3D.rotation.y = model.rotation.y
-	if direction:
+	var canMove = state != States.STUNNED and state != States.RECOVERING
+	if direction and canMove:
 		velocity.x = lerp(velocity.x, direction.x * SPEED, .15 * 2)
 		velocity.z = lerp(velocity.z, direction.z * SPEED, .15 * 2)
 		targetRot = atan2(-velocity.x, -velocity.z)
 	else:
-		velocity = lerp(velocity, Vector3.ZERO + Vector3(0,velocity.y,0), 5 * dt)
+		velocity = lerp(velocity, Vector3.ZERO + Vector3(0,velocity.y,0), 8 * dt)
 
 func _physics_process(delta: float) -> void:
 	dt = delta
@@ -52,10 +61,32 @@ func _physics_process(delta: float) -> void:
 	# As good practice, you should replace UI actions with custom gameplay actions.
 	input_dir = Input.get_vector("Left", "Right", "Up", "Down")
 	direction = flatten($CamPivot.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
-	move()
+	
+	
+	runState()
+
 	
 	move_and_slide()
 	
+
+
+func runState() -> void:
+	if state == States.MOVE:
+		move()
+	if state == States.STUNNED:
+		move()
+	if state == States.RECOVERING:
+		move()
+
+func stun(time : float) -> void:
+	state = States.STUNNED
+	stunTimer.start(time)
+	animPlr.play("Stun")
+
+func recover(time : float) -> void:
+	state = States.RECOVERING
+	stunTimer.start(time)
+
 
 
 func attack() -> void:
@@ -65,3 +96,7 @@ func attack() -> void:
 	velocity = -camForw.normalized() * 5
 	
 	targetRot = atan2(-velocity.x, -velocity.z)
+
+
+func _on_stun_timeout() -> void:
+	state = States.MOVE

@@ -28,7 +28,6 @@ enum States {MOVE, STUNNED, ATTACKING, RECOVERING}
 
 var state = States.MOVE
 
-var stunned := false
 
 func move() -> void:
 	model.rotation.y = lerp_angle(model.rotation.y, targetRot, .5)
@@ -86,9 +85,12 @@ func recover(time : float) -> void:
 	stunTimer.start(time)
 
 func attack():
+	targetRot = atan2(-direction.x,-direction.z)
 	print("Attack")
 	recover(1)
+	animPlr.play("RESET")
 	animPlr.play("Attack")
+	
 
 func _on_stun_timeout() -> void:
 	state = States.MOVE
