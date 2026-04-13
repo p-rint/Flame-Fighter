@@ -21,5 +21,5 @@ func _area_entered(area: Area3D) -> void:
 			otherGuy.velocity = dir * 5
 			
 			if otherGuy.has_method("stun"):
-				otherGuy.stun(.2)
+				otherGuy.stun(.25)
 			#targetRot = atan2(-velocity.x, -velocity.z)

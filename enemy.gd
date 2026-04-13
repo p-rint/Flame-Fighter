@@ -11,7 +11,7 @@ const JUMP_VELOCITY = 4.5
 
 var dt : float
 var targetRot = 0
-@export var health = 99
+@export var health : int = 20
 
 @onready var animPlr: AnimationPlayer = $AnimationPlayer
 
@@ -20,6 +20,7 @@ var targetRot = 0
 var toPlr : Vector3
 
 @onready var stunTimer : Timer = $Timers/Stun
+
 
 func flatten(vector: Vector3) -> Vector3:
 	return Vector3( vector.x, 0, vector.z)
@@ -42,6 +43,11 @@ func move() -> void:
 			#print ("Freez")
 			velocity = lerp(velocity, Vector3.ZERO + Vector3(0,velocity.y,0), 8 * dt)
 
+
+func _ready() -> void:
+	fireOff()
+
+
 func _physics_process(delta: float) -> void:
 	dt = delta
 	
@@ -56,14 +62,18 @@ func _physics_process(delta: float) -> void:
 	
 	if toPlr.length() <= 10:
 		curSpeed = LUNGESPEED
+		fireOn()
 	else:
 		curSpeed = SPEED
+		
 	if toPlr.length() <= 1.8 and state != States.RECOVERING and state != States.STUNNED:
 		attack()
+		fireOff()
 	
 	runState()
 	
 	move_and_slide()
+	checkDead()
 	
 	
 
@@ -72,13 +82,16 @@ func runState() -> void:
 		move()
 	if state == States.STUNNED:
 		move()
+		fireOff()
 	if state == States.RECOVERING:
 		move()
+		fireOff()
 
 func stun(time : float) -> void:
 	state = States.STUNNED
 	stunTimer.start(time)
 	animPlr.play("Stun")
+	health -= 4
 
 func recover(time : float) -> void:
 	state = States.RECOVERING
@@ -94,3 +107,17 @@ func attack():
 
 func _on_stun_timeout() -> void:
 	state = States.MOVE
+
+
+func fireOn():
+	$Character/MeshInstance3D/Fire.emitting = true
+	$Character/MeshInstance3D/Sparks.emitting = true
+	
+func fireOff():
+	$Character/MeshInstance3D/Fire.emitting = false
+	$Character/MeshInstance3D/Sparks.emitting = false
+
+func checkDead():
+	if health <= 0:
+		queue_free()
+		

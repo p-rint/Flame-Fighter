@@ -14,6 +14,8 @@ var dt : float
 var targetRot = 0
 @export var health = 99
 
+@export var score : int = 0
+
 @onready var animPlr: AnimationPlayer = $AnimationPlayer
 
 var camForw : Vector3
@@ -25,7 +27,7 @@ enum States {MOVE, STUNNED, ATTACKING, RECOVERING}
 
 var state = States.MOVE
 
-
+var attackNum = 0
 
 func flatten(vector: Vector3) -> Vector3:
 	return Vector3( vector.x, 0, vector.z)
@@ -55,7 +57,8 @@ func _physics_process(delta: float) -> void:
 		velocity.y = JUMP_VELOCITY
 
 	if Input.is_action_just_pressed("Attack"):
-		attack()
+		if state != States.RECOVERING and state != States.STUNNED:
+			attack()
 		
 	# Get the input direction and handle the movement/deceleration.
 	# As good practice, you should replace UI actions with custom gameplay actions.
@@ -91,7 +94,13 @@ func recover(time : float) -> void:
 
 func attack() -> void:
 	animPlr.play("RESET")
-	animPlr.play("Attack1")
+	if attackNum == 0:
+		animPlr.play("Attack1")
+	else:
+		animPlr.play("Attack2")
+	
+	attackNum = wrapi(attackNum + 1, 0, 2)
+	print(attackNum)
 	#animPlr.play("RESET")
 	velocity = -camForw.normalized() * 5
 	
